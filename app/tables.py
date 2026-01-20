@@ -12,4 +12,5 @@ tasks=Table(
     Column("status", Text, nullable=False, server_default="pending"),
     Column("created_at", TIMESTAMP, server_default=func.now()),
     Column("updated_at", TIMESTAMP, server_default=func.now(), onupdate=func.now())
+    
 )
