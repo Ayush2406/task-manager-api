@@ -9,3 +9,9 @@ class TaskOut(TaskCreate):
     id:int
     created_at:datetime
     updated_at:datetime
+    
+    
+    
+class Pagination(BaseModel):
+    limit:int
+    offset:int
