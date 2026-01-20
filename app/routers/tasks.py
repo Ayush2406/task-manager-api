@@ -2,9 +2,11 @@ from fastapi import APIRouter,HTTPException,status,Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..tables import tasks
 from ..database import get_session
-from ..schemas import TaskCreate,TaskOut
+from ..schemas import TaskCreate,TaskOut,Pagination
 from sqlalchemy import select,update,delete,insert
-from typing import List,Annotated
+from typing import List,Annotated,Dict
+from app.dependencies.pagination import get_pagination
+
 
 router=APIRouter(
     tags=["tasks"],
@@ -13,11 +15,16 @@ router=APIRouter(
 
 @router.get("/",response_model=List[TaskOut])
 async def get_all_tasks(
-    session:Annotated[AsyncSession,Depends(get_session)]
+    session:Annotated[AsyncSession,Depends(get_session)],
+    page:Annotated[Pagination,Depends(get_pagination)]
 ):
     stmt=(
         select(tasks)
+        .limit(page.limit)
+        .offset(page.offset)
+        .order_by(tasks.c.updated_at.desc())
     )
+    
     result= await session.execute(stmt)
     rows=result.fetchall()
     return [
