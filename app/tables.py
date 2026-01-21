@@ -12,6 +12,7 @@ tasks=Table(
     Column("status", Text, nullable=False,server_default="pending"),
     Column("created_at", TIMESTAMP, server_default=func.now()),
     Column("updated_at", TIMESTAMP, server_default=func.now(), onupdate=func.now()),
-    CheckConstraint("status IN ('pending','in_progress','completed')")
-    
+    CheckConstraint("status IN ('pending','in_progress','completed')"),
+    CheckConstraint("length(trim(description))>0",name="tasks_description_not_empty"),
+    CheckConstraint("length(trim(title))>0",name="tasks_title_not_empty")
 )
