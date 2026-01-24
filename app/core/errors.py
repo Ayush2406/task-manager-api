@@ -20,6 +20,14 @@ async def integrity_error_handler(request:Request,exc:IntegrityError):
             content={"error_code":"Invalid_input",
                      "message":"Description cannot be empty"}
         )
+    elif "users_email_key" in error_msg:
+        return JSONResponse(
+            status_code=409,
+            content={
+                "error_code":"Email already registered",
+                "message":"An account with this email already exists. Please use a different email or try logging in."
+            }
+        )
 
 
 async def http_error_handler(request:Request,exc:HTTPException):
