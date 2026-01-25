@@ -2,11 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from ..schemas import UserOut,UserLogin,UserRegister
 from ..database import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, insert,update
+from sqlalchemy import select, insert
 from ..tables import users
 from ..core.security import hash_password,verify_password
 from typing import Annotated
-
+from ..core.jwt import create_access_token
+from app.core.jwt import SECRET_KEY
 router = APIRouter(
     tags=["auth"],
     prefix="/auth"
@@ -26,7 +27,7 @@ async def register_user(user: UserRegister,session:Annotated[AsyncSession,Depend
     
     return UserOut(id=row.id,email=row.email)
 
-@router.post("/login",status_code=status.HTTP_200_OK)
+@router.post("/login",status_code=status.HTTP_200_OK,response_model=dict)
 async def authenticate_user(user:UserLogin,session:Annotated[AsyncSession,Depends(get_session)]):
     
     fake_hash="$2b$12$C6UzMDM.H6dfI/f/IKcEe."
@@ -37,12 +38,6 @@ async def authenticate_user(user:UserLogin,session:Annotated[AsyncSession,Depend
     )
     result=await session.execute(stmt)
     row=result.fetchone()
-
-    if row is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password"
-        )
         
     hashed= row.hashed_password if row else fake_hash
     
@@ -53,8 +48,19 @@ async def authenticate_user(user:UserLogin,session:Annotated[AsyncSession,Depend
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
         )
+        
+    if row is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password"
+        )
+
+    print("LOGIN ISSUING TOKEN WITH SECRET_KEY =", SECRET_KEY)
+
+    token=create_access_token(row.id)
     
     return {
-        "id":row.id,
-        "email":row.email
+        "access_token":token,
+        "token_type":"bearer"
     }
+    
