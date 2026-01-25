@@ -22,6 +22,14 @@ class UserCreate(BaseModel):
     email:EmailStr
     password:Annotated[str, StringConstraints(min_length=8)]
     
+class UserRegister(BaseModel):
+    email:EmailStr
+    password:Annotated[str,StringConstraints(min_length=8)]
+    
+class UserLogin(BaseModel):
+    email:EmailStr
+    password:Annotated[str,StringConstraints(min_length=8)]
+
 class UserOut(BaseModel):
     id:UUID
     email:EmailStr
