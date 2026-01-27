@@ -1,21 +1,8 @@
-from sqlalchemy import Table,Column,Integer,Text,MetaData,TIMESTAMP,CheckConstraint,UUID,Boolean
+from annotated_types import T
+from sqlalchemy import ForeignKey, Table,Column,Integer,Text,MetaData,TIMESTAMP,CheckConstraint,UUID,Boolean, false, table, true
 from sqlalchemy.sql import func
 
 metadata=MetaData()
-
-tasks=Table(
-    "tasks",
-    metadata,
-    Column("id",Integer,primary_key=True),
-    Column("title",Text,nullable=False),
-    Column("description",Text,nullable=False),
-    Column("status", Text, nullable=False,server_default="pending"),
-    Column("created_at", TIMESTAMP, server_default=func.now()),
-    Column("updated_at", TIMESTAMP, server_default=func.now(), onupdate=func.now()),
-    CheckConstraint("status IN ('pending','in_progress','completed')"),
-    CheckConstraint("length(trim(description))>0",name="tasks_description_not_empty"),
-    CheckConstraint("length(trim(title))>0",name="tasks_title_not_empty")
-)
 
 users=Table(
     "users",
@@ -28,3 +15,20 @@ users=Table(
     Column("updated_at", TIMESTAMP(timezone=True),nullable=False, server_default=func.now())
     
 )
+
+tasks=Table(
+    "tasks",
+    metadata,
+    Column("id",Integer,primary_key=True),
+    Column("title",Text,nullable=False),
+    Column("description",Text,nullable=False),
+    Column("status", Text, nullable=False,server_default="pending"),
+    Column("created_at", TIMESTAMP, server_default=func.now()),
+    Column("updated_at", TIMESTAMP, server_default=func.now(), onupdate=func.now()),
+    Column("owner_id",UUID(as_uuid=True),ForeignKey(users.c.id),nullable=False),
+    CheckConstraint("status IN ('pending','in_progress','completed')"),
+    CheckConstraint("length(trim(description))>0",name="tasks_description_not_empty"),
+    CheckConstraint("length(trim(title))>0",name="tasks_title_not_empty")
+)
+
+
