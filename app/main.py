@@ -6,8 +6,19 @@ from fastapi import FastAPI,HTTPException
 from app.core.errors import integrity_error_handler,http_error_handler,request_validation_handler
 from sqlalchemy.exc import IntegrityError
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app=FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # OK for local development only
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 app.include_router(tasks.router)
 app.include_router(auth.router)
