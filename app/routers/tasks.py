@@ -19,9 +19,11 @@ router=APIRouter(
 async def get_all_tasks(
     session:Annotated[AsyncSession,Depends(get_session)],
     page:Annotated[Pagination,Depends(get_pagination)],
+    current_user:Annotated[UserOut,Depends(get_current_user)]
 ):
     stmt=(
         select(tasks)
+        .where(tasks.c.owner_id==current_user.id)
         .limit(page.limit)
         .offset(page.offset)
         .order_by(tasks.c.updated_at.desc())
@@ -36,10 +38,11 @@ async def get_all_tasks(
 
 @router.get("/{id}",response_model=TaskOut)
 async def get_noteby_id(id:int,
-        session:Annotated[AsyncSession,Depends(get_session)]                    
+        session:Annotated[AsyncSession,Depends(get_session)],
+        current_user:Annotated[UserOut,Depends(get_current_user)]                    
     ):
     stmt=(select(tasks)
-          .where(tasks.c.id==id)
+          .where(tasks.c.owner_id==current_user.id,tasks.c.id==id)
     )
     result= await session.execute(stmt)
     row=result.fetchone()
@@ -61,7 +64,7 @@ async def create_task(
 
     stmt= ( 
         insert(tasks)
-        .values(title=task.title,description=task.description)
+        .values(title=task.title,description=task.description,owner_id=current_user.id)
         .returning(tasks.c.id,tasks.c.title,tasks.c.description,tasks.c.status,tasks.c.created_at,tasks.c.updated_at)
     )
 
@@ -77,7 +80,7 @@ async def update_task(
     ):
     stmt=(
         update(tasks)
-        .where(tasks.c.id==id)
+        .where(tasks.c.owner_id==current_user.id,tasks.c.id==id)
         .values(title=task.title,description=task.description)
         .returning(tasks.c.id,tasks.c.title,tasks.c.description,tasks.c.status,tasks.c.created_at,tasks.c.updated_at)
     )
@@ -103,7 +106,7 @@ async def delete_task(
     ):
     stmt=(
         delete(tasks)
-        .where(tasks.c.id==id)
+        .where(tasks.c.owner_id==current_user.id,tasks.c.id==id)
         .returning(tasks.c.id)
     )
 
