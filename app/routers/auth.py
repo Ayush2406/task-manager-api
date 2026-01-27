@@ -7,7 +7,7 @@ from ..tables import users
 from ..core.security import hash_password,verify_password
 from typing import Annotated
 from ..core.jwt import create_access_token
-from app.core.jwt import SECRET_KEY
+
 router = APIRouter(
     tags=["auth"],
     prefix="/auth"
@@ -54,8 +54,6 @@ async def authenticate_user(user:UserLogin,session:Annotated[AsyncSession,Depend
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
         )
-
-    print("LOGIN ISSUING TOKEN WITH SECRET_KEY =", SECRET_KEY)
 
     token=create_access_token(row.id)
     

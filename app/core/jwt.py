@@ -9,6 +9,14 @@ if not SECRET_KEY:
 ALGORITHM="HS256"
 ACCESS_TOKEN_EXPIRE = timedelta(minutes=30)
 
+class TokenError(Exception):
+    pass
+
+class TokenExpiredError(TokenError):
+    pass
+
+class InvalidTokenError(TokenError):
+    pass
 
 def create_access_token(user_id:str)->str:
     now=datetime.now(timezone.utc)
@@ -16,14 +24,16 @@ def create_access_token(user_id:str)->str:
     
     payload={
         "sub":str(user_id),
-        "exp":exp
+        "iat":now,
+        "exp":exp,
+        "type":"access"
     }
     token=jwt.encode(payload,SECRET_KEY,algorithm=ALGORITHM)
     
     
     return token
     
-def verify_access_token(token:str)->str:
+def verify_access_token(token:str)->dict:
     try:
         
         payload=jwt.decode(
@@ -31,16 +41,13 @@ def verify_access_token(token:str)->str:
             SECRET_KEY,
             algorithms=[ALGORITHM]
         )
-        user_id=payload.get("sub")
         
-        if user_id is None:
-            raise RuntimeError("Token payload missing 'sub'")
         
-        return user_id
+        return payload
     
     except ExpiredSignatureError:
-        raise RuntimeError("Token was Expired")
+        raise TokenExpiredError()
     except JWTError:
-        raise RuntimeError("Invalid Token")
+        raise InvalidTokenError()
         
         

@@ -2,7 +2,7 @@ from fastapi import APIRouter,HTTPException,status,Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..tables import tasks
 from ..database import get_session
-from ..schemas import TaskCreate,TaskOut,Pagination
+from ..schemas import TaskCreate,TaskOut,Pagination,UserOut
 from sqlalchemy import select,update,delete,insert
 from typing import List,Annotated,Dict
 from app.dependencies.pagination import get_pagination
@@ -56,7 +56,7 @@ async def get_noteby_id(id:int,
 @router.post("/",status_code=status.HTTP_201_CREATED,response_model=TaskOut)
 async def create_task(
     task:TaskCreate,session:Annotated[AsyncSession,Depends(get_session)],
-    current_user:Annotated[Row,Depends(get_current_user)]
+    current_user:Annotated[UserOut,Depends(get_current_user)]
     ):
 
     stmt= ( 
@@ -73,7 +73,7 @@ async def create_task(
 @router.put("/{id}",response_model=TaskOut)
 async def update_task(
     task:TaskCreate,id:int,session:Annotated[AsyncSession,Depends(get_session)],
-    current_user:Annotated[Row,Depends(get_current_user)]
+    current_user:Annotated[UserOut,Depends(get_current_user)]
     ):
     stmt=(
         update(tasks)
@@ -99,7 +99,7 @@ async def update_task(
 @router.delete("/{id}",status_code=status.HTTP_204_NO_CONTENT)
 async def delete_task(
     id:int,session:Annotated[AsyncSession,Depends(get_session)],
-    current_user:Annotated[Row,Depends(get_current_user)]
+    current_user:Annotated[UserOut,Depends(get_current_user)]
     ):
     stmt=(
         delete(tasks)
